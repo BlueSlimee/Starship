@@ -46,9 +46,11 @@ module.exports = class RequestUtils {
             resolve(await this._getUserData(access))
           }, data.retry_after + 10)
         } else {
-          data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0]
-           ? async () => await this._getUserGuilds(access)
-           : null
+          data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? (async () => {
+            const guilds = await this._getUserGuilds(access)
+            return guilds
+          })() : null
+          
           return data
         }
       })
