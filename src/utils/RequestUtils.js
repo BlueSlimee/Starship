@@ -50,7 +50,7 @@ module.exports = class RequestUtils {
             const guilds = await this._getUserGuilds(access)
             return guilds
           })() : null
-          
+
           return data
         }
       })
