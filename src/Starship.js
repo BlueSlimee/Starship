@@ -46,7 +46,7 @@ module.exports = class Starship {
     const { jwt, _requestUtils } = this
     return (req, res, next) => {
       const data = jwt.decode(req.query.token || req.body.token)
-      req.isAuthenticated = (data || {}).access
+      req.isAuthenticated = Boolean((data || {}).access)
       req.user = req.isAuthenticated ? _requestUtils.getUserData(data.access, data.refresh) : null
 
       next()

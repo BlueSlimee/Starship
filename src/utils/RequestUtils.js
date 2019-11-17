@@ -31,7 +31,7 @@ module.exports = class RequestUtils {
 
     this._cache.push({ data: d, access: access })
     return { data: d }
-  }
+   }
 
   async _getUserData (access) {
     return fetch('https://discordapp.com/api/users/@me', {
@@ -40,7 +40,7 @@ module.exports = class RequestUtils {
         Authorization: `Bearer ${access}`
       }
     }).then(r => r.json()).then(async (d) => {
-      d.guilds = this.starship.scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
+      d.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
       return d
     }).catch(error => {
       return { error }
