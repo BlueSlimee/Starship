@@ -40,13 +40,15 @@ module.exports = class RequestUtils {
         Authorization: `Bearer ${access}`
       }
     }).then(r => r.json()).then(async (data) => {
-      return new Promise(async (resolve) => {
+      return new Promise((resolve) => {
         if (data.message === 'You are being rate limited.') {
           setTimeout(async () => {
             resolve(await this._getUserData(access))
           }, data.retry_after + 10)
         } else {
-          data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
+          data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0]
+           ? async () => await this._getUserGuilds(access))
+           : null
           return data
         }
       })
