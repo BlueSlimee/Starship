@@ -13,8 +13,29 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  publish-npm:
+  update-version:
     needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v1
+      - run: git switch -c master
+      - run: git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - run: git config user.name "$GITHUB_ACTOR"
+      - run: npm version patch
+      - run: git add .
+      - run: git commit -m "Bump package version"
+      - run: git push "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY"
+      - run: git switch -c unstable
+      - run: git add .
+      - run: git commit -m "Bump package version"
+      - run: git push "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY"
+      
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  publish-npm:
+    needs: [build, update-version]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
@@ -29,7 +50,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
   publish-gpr:
-    needs: build
+    needs: [build, update-version]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
