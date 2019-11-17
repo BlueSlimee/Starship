@@ -23,15 +23,13 @@ module.exports = class RequestUtils {
       const newAccess = await this._getData(refresh)
       if (newAccess.error || !newAccess.access_token) return null
       const userData = await this._getUserData(newAccess)
-      userData.guilds = this.starship._scopes.includes(a => a === 'guilds') ? await this._getUserGuilds(newAccess) : null
-      this._cache.push({ data: { ...userData }, access: newAccess })
+      this._cache.push({ data: userData, access: newAccess })
       return { newToken: this.starship.jwt.encode(newAccess.access_token, newAccess.refresh_token), data: userData }
     } else if (d.error && !refresh) {
       return null
     }
 
-    d.guilds = this.starship._scopes.includes(a => a === 'guilds') ? await this._getUserGuilds(access) : null
-    this._cache.push({ data: { ...d }, access: access })
+    this._cache.push({ data: d, access: access })
     return { data: d }
   }
 
@@ -41,7 +39,10 @@ module.exports = class RequestUtils {
       headers: {
         Authorization: `Bearer ${access}`
       }
-    }).then(r => r.json()).catch(error => {
+    }).then(r => r.json()).then(async (d) => {
+      d.guilds = this.starship.scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
+      return d
+    }).catch(error => {
       return { error }
     })
   }
@@ -53,7 +54,7 @@ module.exports = class RequestUtils {
         Authorization: `Bearer ${access}`
       }
     }).then(r => r.json()).catch(error => {
-      return { error }
+      return null
     })
   }
 
