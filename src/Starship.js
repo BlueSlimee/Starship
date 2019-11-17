@@ -38,7 +38,7 @@ module.exports = class Starship {
     this.jwt = new JWTUtils(this)
     this._requestUtils = new RequestUtils(this)
     this.app.use(this._expressMiddleware())
-    this.registerRoutes(app)
+    this._registerRoutes(app)
   }
 
   _expressMiddleware () {
@@ -52,7 +52,7 @@ module.exports = class Starship {
     }
   }
 
-  registerRoutes (app) {
+  _registerRoutes (app) {
     app.use('/auth', authRouter(this))
   }
 }

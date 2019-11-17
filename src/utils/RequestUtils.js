@@ -22,7 +22,7 @@ module.exports = class RequestUtils {
       const newAccess = await this._getData(refresh)
       if (newAccess.error || !newAccess.access_token) return null
       const userData = await this._getUserData(newAccess)
-      this._cache.push({ { data: { ...userData }, access: newAccess })
+      this._cache.push({ data: { ...userData }, access: newAccess })
       return { newToken: this.starship.jwt.encode(newAccess.access_token, newAccess.refresh_token), data: userData }
     } else if (d.error && !refresh) {
       return null

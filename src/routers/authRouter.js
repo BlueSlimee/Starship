@@ -18,7 +18,7 @@ module.exports = (starship) => {
     const tokenData = await starship.jwt.decode(token)
     if (!tokenData) return res.status(401).json({ error: true, message: 'A invalid token was provided!', code: 2 })
 
-    let userData = await starship._requestUtils.getUserData(tokenData.access, tokenData.refresh)
+    const userData = await starship._requestUtils.getUserData(tokenData.access, tokenData.refresh)
     if (!userData) return res.status(401).json({ error: true, message: 'All tokens are invalid!', code: 3 })
 
     if (starship._filter) userData.data = await starship._filter(userData.data)
