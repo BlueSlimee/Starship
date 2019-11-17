@@ -5,4 +5,4 @@ And, you can switch from passport-discord without having to do major changes to 
 
 ## How to use Starship?
 Exemples for server-side are located under `tests/` directory.
-I will create front-end examples pretty, pls wait
+I will create front-end examples pretty soon, pls wait
