@@ -1,0 +1,21 @@
+{
+  "name": "starship-discord",
+  "version": "1.1.7",
+  "description": "Discord OAuth made easy with JWT.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "jwt"
+  ],
+  "author": "BlueSlimee",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "btoa": "^1.2.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.0"
+  }
+}
