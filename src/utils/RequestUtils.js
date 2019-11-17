@@ -54,6 +54,7 @@ module.exports = class RequestUtils {
         Authorization: `Bearer ${access}`
       }
     }).then(r => r.json()).catch(error => {
+      console.log(`[Starship] An unexpected error was caught when trying to fetch the user's guilds.\n[Starship] This is probably a issue with Discord.\n[Starship] Error message: ${error.message}`)
       return null
     })
   }
