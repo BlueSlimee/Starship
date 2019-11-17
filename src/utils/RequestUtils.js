@@ -31,7 +31,7 @@ module.exports = class RequestUtils {
 
     this._cache.push({ data: d, access: access })
     return { data: d }
-   }
+  }
 
   async _getUserData (access) {
     return fetch('https://discordapp.com/api/users/@me', {
