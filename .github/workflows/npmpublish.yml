@@ -38,9 +38,9 @@ jobs:
         with:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
-          scope: '@blueslimee'
+          scope: '@BlueSlimee'
       - run: npm ci
-      - run: echo registry=https://npm.pkg.github.com/BlueSlimee >> .npmrc
+      - run: echo registry=https://npm.pkg.github.com/@BlueSlimee >> .npmrc
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.gpr_publish_token}}
