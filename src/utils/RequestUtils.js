@@ -39,9 +39,17 @@ module.exports = class RequestUtils {
       headers: {
         Authorization: `Bearer ${access}`
       }
-    }).then(r => r.json()).then(async (d) => {
-      d.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
-      return d
+    }).then(r => r.json()).then(async (data) => {
+      return new Promise(async (resolve) => {
+        if (data.message === 'You are being rate limited.') {
+          setTimeout(async () => {
+            resolve(await this._getUserData(access))
+          }, data.retry_after + 10)
+        } else {
+          data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? await this._getUserGuilds(access) : null
+          return data
+        }
+      })
     }).catch(error => {
       return { error }
     })
@@ -53,7 +61,17 @@ module.exports = class RequestUtils {
       headers: {
         Authorization: `Bearer ${access}`
       }
-    }).then(r => r.json()).catch(error => {
+    }).then(r => r.json()).then((guilds) => {
+      return new Promise((resolve) => {
+        if (guilds.message === 'You are being rate limited.') {
+          setTimeout(async () => {
+            resolve(await this._getUserGuilds(access))
+          }, guilds.retry_after + 10)
+        } else {
+          return guilds
+        }
+      })
+    }).catch(error => {
       console.log(`[Starship] An unexpected error was caught when trying to fetch the user's guilds.\n[Starship] This is probably a issue with Discord.\n[Starship] Error message: ${error.message}`)
       return null
     })
@@ -65,7 +83,17 @@ module.exports = class RequestUtils {
       headers: {
         Authorization: `Basic ${this.cred}`
       }
-    }).then(r => r.json()).catch(error => {
+    }).then(r => r.json()).then(async (data) => {
+      return new Promise((resolve) => {
+        if (data.message === 'You are being rate limited.') {
+          setTimeout(async () => {
+            resolve(await this._getData(code))
+          })
+        } else {
+          resolve(data)
+        }
+      })
+    }).catch(error => {
       return { error }
     })
   }
