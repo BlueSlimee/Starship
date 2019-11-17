@@ -22,6 +22,7 @@ module.exports = class Starship {
     if (!Array.isArray(options.scopes)) {
       throw new TypeError('Missing OAuth scopes, or scopes isn\'t an array.')
     }
+    this._scopes = options.scopes
     this._authURL = `https://discordapp.com/api/oauth2/authorize?client_id=${options.clientID}&redirect_uri=${encodeURIComponent(options.redirectURL)}&response_type=code&scope=${options.scopes.join('%20')}`
 
     if (typeof (options.clientSecret) !== 'string') {
