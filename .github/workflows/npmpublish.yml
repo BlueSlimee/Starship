@@ -1,8 +1,6 @@
 name: Node.js Package
 
-on:
-  release:
-    types: [created]
+on: push
 
 jobs:
   build:
@@ -18,6 +16,7 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -32,6 +31,7 @@ jobs:
   publish-gpr:
     needs: build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
