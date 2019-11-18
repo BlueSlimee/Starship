@@ -9,7 +9,7 @@
     "env": [ "jest" ]
   },
   "scripts": {
-    "test": "standard && jest"
+    "test": "standard --fix && jest"
   },
   "dependencies": {
     "btoa": "^1.2.1",

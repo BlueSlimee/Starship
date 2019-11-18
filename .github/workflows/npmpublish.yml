@@ -3,7 +3,7 @@ name: Node.js Package
 on: push
 
 jobs:
-  build:
+  lint-and-update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -12,6 +12,13 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm test
+      - run: npm version patch
+      - run: git config --local user.email "action@github.com"
+      - run: git config --local user.name "GitHub Action"
+      - run: git commit -m "Bump version & fixes" -a
+      - uses: ad-m/github-push-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
     needs: build
