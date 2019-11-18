@@ -12,7 +12,7 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm test
-      - run: npm --no-git-tag-version -f version patch
+      - run: npm version patch --no-git-tag-version -f
       - run: git config --local user.email "action@github.com"
       - run: git config --local user.name "GitHub Action"
       - run: git commit -m "Bump version & fixes" -a
