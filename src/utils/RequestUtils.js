@@ -43,8 +43,8 @@ module.exports = class RequestUtils {
       return new Promise((resolve) => {
         if (data.message === 'You are being rate limited.') {
           setTimeout(async () => {
-            resolve(await this._getUserData(access))
-          }, data.retry_after + 10)
+            resolve(this._getUserData(access))
+          }, data.retry_after)
         } else {
           data.guilds = this.starship._scopes.filter(a => a === 'guilds')[0] ? (async () => {
             const guilds = await this._getUserGuilds(access)
@@ -69,8 +69,8 @@ module.exports = class RequestUtils {
       return new Promise((resolve) => {
         if (guilds.message === 'You are being rate limited.') {
           setTimeout(async () => {
-            resolve(await this._getUserGuilds(access))
-          }, guilds.retry_after + 10)
+            resolve(this._getUserGuilds(access))
+          }, guilds.retry_after)
         } else {
           return guilds
         }
@@ -91,8 +91,8 @@ module.exports = class RequestUtils {
       return new Promise((resolve) => {
         if (data.message === 'You are being rate limited.') {
           setTimeout(async () => {
-            resolve(await this._getData(code))
-          })
+            resolve(this._getData(code))
+          }, data.retry_after)
         } else {
           resolve(data)
         }
