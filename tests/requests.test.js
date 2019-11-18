@@ -4,4 +4,3 @@ const requestUtils = new RequestUtils({ _scopes: ['identify', 'guilds'] }) // We
 test('tests if getUserData and its dependencies are working properly', () => {
   expect(requestUtils.getUserData('a')).toBeNull()
 })
-

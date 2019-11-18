@@ -53,16 +53,16 @@ module.exports = class RequestUtils {
       return { error }
     })
   }
-  
+
   async _addGuildsProperty (access, user) {
-    if (starship._scopes.includes(a => a === 'guilds')) {
+    if (this.starship._scopes.includes(a => a === 'guilds')) {
       user.guilds = await this._getUserGuilds(access)
       return user
     } else {
       return user
     }
   }
-  
+
   async _getUserGuilds (access) {
     return fetch('https://discordapp.com/api/users/@me/guilds', {
       method: 'GET',
