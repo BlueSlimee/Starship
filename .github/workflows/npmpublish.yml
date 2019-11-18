@@ -21,7 +21,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish-npm:
-    needs: build
+    needs: lint-and-update
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
@@ -36,7 +36,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
   publish-gpr:
-    needs: build
+    needs: lint-and-update
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
