@@ -13,7 +13,7 @@ module.exports = class RequestUtils {
   }
 
   async getUserData (access, refresh) {
-    if (this._cache.filter(a => a.access === access)[0]) {
+    if (this._cache.includes(a => a.access === access)) {
       return { data: this._cache.filter(a => a.access === access)[0].data }
     }
 
@@ -25,7 +25,7 @@ module.exports = class RequestUtils {
       const userData = await this._getUserData(newAccess)
       this._cache.push({ data: userData, access: newAccess })
       return { newToken: this.starship.jwt.encode(newAccess.access_token, newAccess.refresh_token), data: userData }
-    } else if (d.error && !refresh) {
+    } else if ((d.error || d.message) || !refresh) {
       return null
     }
 
