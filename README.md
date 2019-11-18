@@ -2,7 +2,7 @@
 Starship is a module to make Discord's auth easier.
 - ✅ Automatic token refreshing
 - ✅ Routes are created automatically by the library
-- 📦 < 10kB decompressed
+- 📦 < 4kB compressed
 
 ## Starship is STILL unstable.
 Starship is a new a package, created less than a month ago.
