@@ -3,7 +3,7 @@ name: Node.js Package
 on: push
 
 jobs:
-  lint-and-update:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -12,16 +12,25 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm test
+  bump:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
       - run: npm version patch --no-git-tag-version -f
       - run: git config --local user.email "action@github.com"
       - run: git config --local user.name "GitHub Action"
       - run: git commit -m "Bump version & fixes" -a
       - uses: ad-m/github-push-action@master
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.push_token }}
 
   publish-npm:
-    needs: lint-and-update
+    needs: [build, bump]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
@@ -36,7 +45,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
   publish-gpr:
-    needs: lint-and-update
+    needs: [build, bump]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
