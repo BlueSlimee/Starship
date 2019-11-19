@@ -6,9 +6,9 @@ module.exports = (starship) => {
 
   router.get('/callback', async (req, res) => {
     if (!req.query.code) return res.status(400).json({ error: true, message: 'No code provided!', code: 0 })
-    const d = await starship._requestUtils._getTokens(req.query.code)
-    if (d.error) return res.redirect(`${starship._websiteURL}?code=4`)
-    return res.redirect(`${starship._websiteURL}?token=${starship.jwt.encode(d.access_token, d.refresh_token)}`)
+    const d = await starship._requestUtils.getTokens(req.query.code)
+    if (!d) return res.redirect(`${starship._websiteURL}?code=4`)
+    return res.redirect(`${starship._websiteURL}?token=${starship.jwt.encode(d.access, d.refresh)}`)
   })
 
   router.get('/info', async (req, res) => {
@@ -20,6 +20,7 @@ module.exports = (starship) => {
 
     const userData = await starship._requestUtils.getUserData(tokenData.access, tokenData.refresh)
     if (!userData) return res.status(401).json({ error: true, message: 'All tokens are invalid!', code: 3 })
+    starship.debug(`Obtained info for ${userData.data.username}!`)
 
     res.json({ error: false, data: userData.data, newToken: userData.newToken })
   })

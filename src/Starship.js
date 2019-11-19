@@ -31,6 +31,7 @@ module.exports = class Starship {
     this._clientSecret = options.clientSecret
 
     this._filter = filter
+    this._debugMode = options.debugMode || false
     this._secret = options.secret || 'you know i got a bellyache'
   }
 
@@ -40,6 +41,10 @@ module.exports = class Starship {
     this._requestUtils = new RequestUtils(this)
     this.app.use(this._expressMiddleware())
     this._registerRoutes(app)
+  }
+
+  debug (message) {
+    if (this._debugMode) console.log(`[Starship] [Debugger] ${message}`)
   }
 
   _expressMiddleware () {

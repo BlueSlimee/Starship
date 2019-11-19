@@ -1,12 +1,14 @@
 {
   "name": "starship-discord",
-  "version": "1.1.18",
+  "version": "1.1.19",
   "description": "Discord OAuth made easy with JWT.",
   "main": "index.js",
   "author": "BlueSlimee",
   "license": "AGPL-3.0-or-later",
   "standard": {
-    "env": [ "jest" ]
+    "env": [
+      "jest"
+    ]
   },
   "scripts": {
     "test": "standard && jest"
@@ -15,13 +17,13 @@
     "btoa": "^1.2.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.6.0"
+    "superagent": "^5.1.0"
   },
   "devDependencies": {
     "standard": "^14.3.1",
     "jest": "^24.9.0"
   },
-   "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/BlueSlimee/Starship"
   },
