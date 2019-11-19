@@ -10,7 +10,7 @@ module.exports = class RequestUtils {
       this.cache = []
     }, 10 * 60 * 1000)
   }
-  
+
   async getTokens (code) {
     let data = await this._getTokens(code)
     if (data.error) return null
@@ -46,7 +46,7 @@ module.exports = class RequestUtils {
     }
     if (this.starship._filter) data = this.starship._filter(data)
     this._cache.push({ data, access })
-    
+
     return {
       data: data,
       newToken
@@ -91,7 +91,7 @@ module.exports = class RequestUtils {
       return this._handleError(error)
     })
   }
-  
+
   async _handleSuccess (data, fun, access) {
     return new Promise((resolve) => {
       if (data.message === 'You are being rate limited.') {
@@ -114,12 +114,12 @@ module.exports = class RequestUtils {
     this._showError(data)
     return {
       error: true,
-      _stack: error,
+      _stack: data,
       data: null,
       rateLimited: false
     }
   }
-  
+
   _showError (error) {
     console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.message}`)
   }
