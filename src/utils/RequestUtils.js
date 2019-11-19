@@ -24,7 +24,7 @@ module.exports = class RequestUtils {
 
   async getUserData (access, refresh) {
     const cacheData = this._cache.filter(a => a.access === access)
-    if (cacheData) return cacheData
+    if (cacheData) return { data: cacheData.data }
 
     let data = await this._getUser(access)
     let newToken
