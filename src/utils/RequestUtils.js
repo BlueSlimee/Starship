@@ -3,7 +3,7 @@ const btoa = require('btoa')
 
 module.exports = class RequestUtils {
   constructor (starship) {
-    this.cache = []
+    this._cache = []
     this.starship = starship
     this._creds = btoa(`${starship._clientID}:${starship._clientSecret}`)
     setInterval(() => {
