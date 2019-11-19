@@ -3,106 +3,124 @@ const btoa = require('btoa')
 
 module.exports = class RequestUtils {
   constructor (starship) {
+    this.cache = []
     this.starship = starship
-    this._cache = []
-    this.cred = btoa(`${starship._clientID}:${starship._clientSecret}`)
-
+    this._creds = btoa(`${starship._clientID}:${starship._clientSecret}`)
     setInterval(() => {
-      this._cache = []
-    }, 15 * 60 * 1000)
+      this.cache = []
+    }, 10 * 60 * 1000)
+  }
+  
+  async getTokens (code) {
+    let data = await this._getTokens(code)
+    if (data.error) return null
+    data = data.data
+
+    return {
+      access: data.access,
+      refresh: data.refresh
+    }
   }
 
   async getUserData (access, refresh) {
-    if (this._cache.includes(a => a.access === access)) {
-      return { data: this._cache.filter(a => a.access === access)[0].data }
+    const cacheData = this.starship._cache.filter(a => a.access === access)
+    if (cacheData) return cacheData
+
+    let data = await this._getUser(access)
+    let newToken
+    if (data.error) return null
+    data = data.data
+
+    if (data.message) {
+      const tokens = await this.getTokens(refresh)
+      if (tokens.error) return null
+      newToken = tokens
+      access = tokens.access_token
+      const newData = await this._getUser(tokens.access, tokens.refresh)
+      if (newData.error) return null
+      data = newData.data
     }
 
-    const d = await this._getUserData(access)
-
-    if (d.error && d.error.status === 401 && refresh) {
-      const newAccess = await this._getData(refresh)
-      if (newAccess.error || !newAccess.access_token) return null
-      const userData = await this._getUserData(newAccess)
-      this._cache.push({ data: userData, access: newAccess })
-      return { newToken: this.starship.jwt.encode(newAccess.access_token, newAccess.refresh_token), data: userData }
-    } else if ((d.error || d.message) || !refresh) {
-      return null
+    if (this.starship.scopes.includes(a => a === 'guilds')) {
+      data.guilds = await this._getGuilds(access)
     }
-
-    this._cache.push({ data: d, access: access })
-    return { data: d }
-  }
-
-  async _getUserData (access) {
-    return fetch('https://discordapp.com/api/users/@me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${access}`
-      }
-    }).then(r => r.json()).then(async (data) => {
-      return new Promise((resolve) => {
-        if (data.message === 'You are being rate limited.') {
-          setTimeout(async () => {
-            resolve(this._getUserData(access))
-          }, data.retry_after)
-        } else {
-          return this._addGuildsProperty(access, data)
-        }
-      })
-    }).catch(error => {
-      return { error }
-    })
-  }
-
-  async _addGuildsProperty (access, user) {
-    if (this.starship._scopes.includes(a => a === 'guilds')) {
-      user.guilds = await this._getUserGuilds(access)
-      return user
-    } else {
-      return user
+    if (this.starship._filter) data = this.starship._filter(data)
+    this._cache.push({ data, access })
+    
+    return {
+      data: data,
+      newToken
     }
   }
 
-  async _getUserGuilds (access) {
+  _getGuilds (access) {
     return fetch('https://discordapp.com/api/users/@me/guilds', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${access}`
       }
-    }).then(r => r.json()).then((guilds) => {
-      return new Promise((resolve) => {
-        if (guilds.message === 'You are being rate limited.') {
-          setTimeout(async () => {
-            resolve(this._getUserGuilds(access))
-          }, guilds.retry_after)
-        } else {
-          return guilds
-        }
-      })
-    }).catch(error => {
-      console.log(`[Starship] An unexpected error was caught when trying to fetch the user's guilds.\n[Starship] This is probably a issue with Discord.\n[Starship] Error message: ${error.message}`)
-      return null
+    }).then(r => r.json()).then((data) => {
+      return this._handleSuccess(data, this._getGuilds, access)
+    }).catch((error) => {
+      return this._handleError(error)
     })
   }
 
-  _getData (code) {
+  _getUser (access) {
+    return fetch('https://discordapp.com/api/users/@me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${access}`
+      }
+    }).then(r => r.json()).then((data) => {
+      return this._handleSuccess(data, this._getUser, access)
+    }).catch((error) => {
+      return this._handleError(error)
+    })
+  }
+
+  _getTokens (code) {
     return fetch(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`, {
       method: 'POST',
       headers: {
-        Authorization: `Basic ${this.cred}`
+        Authorization: `Basic ${this.creds}`
       }
-    }).then(r => r.json()).then(async (data) => {
-      return new Promise((resolve) => {
-        if (data.message === 'You are being rate limited.') {
-          setTimeout(async () => {
-            resolve(this._getData(code))
-          }, data.retry_after)
-        } else {
-          resolve(data)
-        }
-      })
-    }).catch(error => {
-      return { error }
+    }).then(r => r.json()).then((data) => {
+      return this._handleSuccess(data, this._getTokens, code)
+    }).catch((error) => {
+      return this._handleError(error)
     })
+  }
+  
+  async _handleSuccess (data, fun, access) {
+    return new Promise((resolve) => {
+      if (data.message === 'You are being rate limited.') {
+        setTimeout(async () => {
+          resolve(fun(access))
+        }, data.retry_after)
+      } else {
+        resolve({
+          error: false,
+          _stack: null,
+          rateLimited: null,
+          data: data,
+          retryAfter: null
+        })
+      }
+    })
+  }
+
+  _handleError (data) {
+    this._showError(data)
+    return {
+      error: true,
+      _stack: error,
+      data: null
+      rateLimited: false
+    }
+  }
+  
+  _showError (error) {
+    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.message}`)
   }
 }
