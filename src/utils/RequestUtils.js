@@ -33,22 +33,28 @@ module.exports = class RequestUtils {
 
     if (data.message) {
       const tokens = await this.getTokens(refresh)
-      if (tokens.error) return null
+      if (!tokens) return null
       newToken = tokens
-      access = tokens.access_token
+      access = tokens.access
       const newData = await this._getUser(tokens.access, tokens.refresh)
       if (newData.error) return null
       data = newData.data
     }
 
     if (this.starship.scopes.includes(a => a === 'guilds')) {
-      data.guilds = await this._getGuilds(access)
+      const guildData = await this._getGuilds(access)
+      if (guildData.error) data.guilds = []
+      else data.guilds = guildData.data
     }
-    if (this.starship._filter) data = this.starship._filter(data)
+
+    if (this.starship._filter) {
+      data = await this.starship._filter(data)
+    }
+
     this._cache.push({ data, access })
 
     return {
-      data: data,
+      data,
       newToken
     }
   }
