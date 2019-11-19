@@ -115,7 +115,7 @@ module.exports = class RequestUtils {
     return {
       error: true,
       _stack: error,
-      data: null
+      data: null,
       rateLimited: false
     }
   }
