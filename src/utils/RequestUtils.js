@@ -23,7 +23,7 @@ module.exports = class RequestUtils {
   }
 
   async getUserData (access, refresh) {
-    const cacheData = this._cache.filter(a => a.access === access)
+    const cacheData = this._cache.filter(a => a.access === access)[0]
     if (cacheData) {
       this.starship.debug(`Data for ${cacheData.data.username} found in cache; returing the cache data...`)
       return { data: cacheData.data }
