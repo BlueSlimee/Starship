@@ -132,6 +132,6 @@ module.exports = class RequestUtils {
   }
 
   _showError (error) {
-    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.stack} (${error.response.status} - ${error.response.text})`)
+    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}`)
   }
 }
