@@ -94,7 +94,7 @@ module.exports = class RequestUtils {
     return superagent
       .post(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`)
       .ok(res => res.status === 429)
-      .set('Authorization', `Bearer ${this.creds}`)
+      .set('Authorization', `Basic ${this.creds}`)
       .then((res) => {
         console.log(res.body)
         return this._handleSuccess(res.body, this._getTokens, code)
