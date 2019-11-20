@@ -66,7 +66,7 @@ module.exports = class RequestUtils {
   }
 
   _getGuilds (access) {
-    this.starship.debug('Trying to fetch the user's guilds...')
+    this.starship.debug('Trying to fetch the user\'s guilds...')
     return superagent
       .get('https://discordapp.com/api/users/@me/guilds')
       .ok(res => res.status === 429 || res.status === 200)
@@ -75,7 +75,7 @@ module.exports = class RequestUtils {
         this.starship.debug(`Successfully fetched user\'s guilds. (${res.body})`)
         return this._handleSuccess(res.body, 'guilds', access)
       }).catch((error) => {
-        this.starship.debug(`Failed to fetch user's guilds. (${error.response.body})`)
+        this.starship.debug(`Failed to fetch user\'s guilds. (${error.response.body})`)
         return this._handleError(error)
       })
   }
