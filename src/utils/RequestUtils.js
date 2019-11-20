@@ -1,70 +1,132 @@
-const fetch = require('node-fetch')
+const superagent = require('superagent')
 const btoa = require('btoa')
 
 module.exports = class RequestUtils {
   constructor (starship) {
-    this.starship = starship
     this._cache = []
-    this.cred = btoa(`${starship._clientID}:${starship._clientSecret}`)
-
+    this.starship = starship
+    this._creds = btoa(`${starship._clientID}:${starship._clientSecret}`)
     setInterval(() => {
-      this._cache = []
-    }, 15 * 60 * 1000)
+      this.cache = []
+    }, 10 * 60 * 1000)
+  }
+
+  async getTokens (code) {
+    let data = await this._getTokens(code)
+    if (data.error) return null
+    data = data.data
+
+    return {
+      access: data.access_token,
+      refresh: data.refresh_token
+    }
   }
 
   async getUserData (access, refresh) {
-    if (this._cache.filter(a => a.access === access)[0]) {
-      return { data: this._cache.filter(a => a.access === access)[0].data }
+    const cacheData = this._cache.filter(a => a.access === access)[0]
+    if (cacheData) {
+      this.starship.debug(`Data for ${cacheData.data.username} found in cache; returing the cache data...`)
+      return { data: cacheData.data }
     }
 
-    const d = await this._getUserData(access)
+    let data = await this._getUser(access)
+    this.starship.debug(data.data ? `Data for user ${data.data.username} fetched with success.` : 'Failed to fetch user profile using the provided token; trying with the refresh token')
+    let newToken
+    if (data.error) return null
+    data = data.data
 
-    if (d.error && d.error.status === 401 && refresh) {
-      const newAccess = await this._getData(refresh)
-      if (newAccess.error || !newAccess.access_token) return null
-      const userData = await this._getUserData(newAccess)
-      userData.guilds = this.starship._scopes.includes(a => a === 'guilds') ? await this._getUserGuilds(newAccess) : null
-      this._cache.push({ data: { ...userData }, access: newAccess })
-      return { newToken: this.starship.jwt.encode(newAccess.access_token, newAccess.refresh_token), data: userData }
-    } else if (d.error && !refresh) {
-      return null
+    if (data.message && data.code) {
+      const tokens = await this.getTokens(refresh)
+      if (!tokens) return null
+      this.starship.debug('Obtained new credentials with the refresh token')
+      newToken = tokens
+      access = tokens.access
+      const newData = await this._getUser(tokens.access, tokens.refresh)
+      if (newData.error) return null
+      data = newData.data
     }
 
-    d.guilds = this.starship._scopes.includes(a => a === 'guilds') ? await this._getUserGuilds(access) : null
-    this._cache.push({ data: { ...d }, access: access })
-    return { data: d }
+    if (this.starship.scopes.includes(a => a === 'guilds')) {
+      const guildData = await this._getGuilds(access)
+      if (guildData.error) data.guilds = []
+      else data.guilds = guildData.data
+    }
+
+    if (this.starship._filter) {
+      data = await this.starship._filter(data)
+    }
+
+    this._cache.push({ data, access })
+
+    return {
+      data,
+      newToken
+    }
   }
 
-  async _getUserData (access) {
-    return fetch('https://discordapp.com/api/users/@me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${access}`
+  _getGuilds (access) {
+    return superagent
+      .get('https://discordapp.com/api/users/@me/guilds')
+      .set('Authorization', `Bearer ${access}`)
+      .then((res) => {
+        return this._handleSuccess(JSON.parse(res.body), this._getGuilds, access)
+      }).catch((error) => {
+        return this._handleError(error)
+      })
+  }
+
+  _getUser (access) {
+    return superagent
+      .get('https://discordapp.com/api/users/@me')
+      .ok(res => res.status <= 403)
+      .set('Authorization', `Bearer ${access}`)
+      .then((res) => {
+        return this._handleSuccess(JSON.parse(res.body), this._getUser, access)
+      }).catch((error) => {
+        return this._handleError(error)
+      })
+  }
+
+  _getTokens (code) {
+    return superagent
+      .post(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`)
+      .set('Authorization', `Basic ${this.creds}`)
+      .then((res) => {
+        return this._handleSuccess(JSON.parse(res.body), this._getTokens, code)
+      }).catch((error) => {
+        return this._handleError(error)
+      })
+  }
+
+  async _handleSuccess (data, fun, access) {
+    return new Promise((resolve) => {
+      if (data.message === 'You are being rate limited.') {
+        setTimeout(async () => {
+          resolve(fun(access))
+        }, data.retry_after)
+      } else {
+        resolve({
+          error: false,
+          _stack: null,
+          rateLimited: null,
+          data: data,
+          retryAfter: null
+        })
       }
-    }).then(r => r.json()).catch(error => {
-      return { error }
     })
   }
 
-  async _getUserGuilds (access) {
-    return fetch('https://discordapp.com/api/users/@me/guilds', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${access}`
-      }
-    }).then(r => r.json()).catch(error => {
-      return { error }
-    })
+  _handleError (data) {
+    this._showError(data)
+    return {
+      error: true,
+      _stack: data,
+      data: null,
+      rateLimited: false
+    }
   }
 
-  _getData (code) {
-    return fetch(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${this.cred}`
-      }
-    }).then(r => r.json()).catch(error => {
-      return { error }
-    })
+  _showError (error) {
+    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.message}`)
   }
 }

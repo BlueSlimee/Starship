@@ -31,6 +31,7 @@ module.exports = class Starship {
     this._clientSecret = options.clientSecret
 
     this._filter = filter
+    this._debugMode = options.debugMode || false
     this._secret = options.secret || 'you know i got a bellyache'
   }
 
@@ -42,11 +43,15 @@ module.exports = class Starship {
     this._registerRoutes(app)
   }
 
+  debug (message) {
+    if (this._debugMode) console.log(`[Starship] [Debugger] ${message}`)
+  }
+
   _expressMiddleware () {
     const { jwt, _requestUtils } = this
     return (req, res, next) => {
       const data = jwt.decode(req.query.token || req.body.token)
-      req.isAuthenticated = (data || {}).access
+      req.isAuthenticated = Boolean((data || {}).access)
       req.user = req.isAuthenticated ? _requestUtils.getUserData(data.access, data.refresh) : null
 
       next()
