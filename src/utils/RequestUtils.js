@@ -69,6 +69,7 @@ module.exports = class RequestUtils {
       .get('https://discordapp.com/api/users/@me/guilds')
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
+        console.log(res.body)
         return this._handleSuccess(JSON.parse(res.body), this._getGuilds, access)
       }).catch((error) => {
         return this._handleError(error)
@@ -81,6 +82,7 @@ module.exports = class RequestUtils {
       .ok(res => res.status <= 403)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
+        console.log(res.body)
         return this._handleSuccess(JSON.parse(res.body), this._getUser, access)
       }).catch((error) => {
         return this._handleError(error)
@@ -92,6 +94,7 @@ module.exports = class RequestUtils {
       .post(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`)
       .set('Authorization', `Basic ${this.creds}`)
       .then((res) => {
+        console.log(res.body)
         return this._handleSuccess(JSON.parse(res.body), this._getTokens, code)
       }).catch((error) => {
         return this._handleError(error)
