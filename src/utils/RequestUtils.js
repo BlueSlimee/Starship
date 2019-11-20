@@ -71,7 +71,7 @@ module.exports = class RequestUtils {
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
         console.log(res.body)
-        return this._handleSuccess(JSON.parse(res.body), this._getGuilds, access)
+        return this._handleSuccess(res.body, this._getGuilds, access)
       }).catch((error) => {
         return this._handleError(error)
       })
@@ -84,7 +84,7 @@ module.exports = class RequestUtils {
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
         console.log(res.body)
-        return this._handleSuccess(JSON.parse(res.body), this._getUser, access)
+        return this._handleSuccess(res.body, this._getUser, access)
       }).catch((error) => {
         return this._handleError(error)
       })
@@ -97,7 +97,7 @@ module.exports = class RequestUtils {
       .set('Authorization', `Basic ${this.creds}`)
       .then((res) => {
         console.log(res.body)
-        return this._handleSuccess(JSON.parse(res.body), this._getTokens, code)
+        return this._handleSuccess(res.body, this._getTokens, code)
       }).catch((error) => {
         return this._handleError(error)
       })
@@ -132,6 +132,6 @@ module.exports = class RequestUtils {
   }
 
   _showError (error) {
-    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.message}`)
+    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.stack}`)
   }
 }
