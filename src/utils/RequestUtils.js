@@ -67,6 +67,7 @@ module.exports = class RequestUtils {
   _getGuilds (access) {
     return superagent
       .get('https://discordapp.com/api/users/@me/guilds')
+      .ok(res => res.status === 429)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
         console.log(res.body)
@@ -79,7 +80,7 @@ module.exports = class RequestUtils {
   _getUser (access) {
     return superagent
       .get('https://discordapp.com/api/users/@me')
-      .ok(res => res.status <= 403)
+      .ok(res => res.status <= 403 || res.status === 429)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
         console.log(res.body)
@@ -92,6 +93,7 @@ module.exports = class RequestUtils {
   _getTokens (code) {
     return superagent
       .post(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`)
+      .ok(res => res.status === 429)
       .set('Authorization', `Basic ${this.creds}`)
       .then((res) => {
         console.log(res.body)
