@@ -72,10 +72,10 @@ module.exports = class RequestUtils {
       .ok(res => res.status === 429 || res.status === 200)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
-        this.starship.debug(`Successfully fetched user\'s guilds. (${res.body})`)
+        this.starship.debug(`Successfully fetched user's guilds. (${res.body})`)
         return this._handleSuccess(res.body, 'guilds', access)
       }).catch((error) => {
-        this.starship.debug(`Failed to fetch user\'s guilds. (${error.response.body})`)
+        this.starship.debug(`Failed to fetch user's guilds. (${error.response.body})`)
         return this._handleError(error)
       })
   }
@@ -114,8 +114,8 @@ module.exports = class RequestUtils {
         if (funName === 'tokens') fun = this._getTokens
         else if (funName === 'user') fun = this._getUser
         else if (funName === 'guilds') fun = this._getGuilds
-        
-        this.starship.debug(`Yay, rate limit. Retrying the request after ${data.retry_after}ms.`) 
+
+        this.starship.debug(`Yay, rate limit. Retrying the request after ${data.retry_after}ms.`)
         setTimeout(() => {
           this.starship.debug('Retrying the request...')
           resolve(fun(access))
@@ -143,6 +143,6 @@ module.exports = class RequestUtils {
   }
 
   _showError (error) {
-    console.log('[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n'+ error.response ? `[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}` : `[Starship] Error message: ${error.stack}`)
+    console.log('[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n' + error.response ? `[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}` : `[Starship] Error message: ${error.stack}`)
   }
 }
