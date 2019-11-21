@@ -46,7 +46,7 @@ module.exports = class RequestUtils {
       data = newData.data
     }
 
-    if (this.starship._scopes.includes(a => a === 'guilds')) {
+    if (this.starship._scopes.includes('guilds')) {
       this.starship.debug(`Trying to fetch guilds for ${data.username}...`)
       const guildData = await this._getGuilds(access)
       if (guildData.error) data.guilds = []
