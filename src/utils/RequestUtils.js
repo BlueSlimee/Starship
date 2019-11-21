@@ -108,7 +108,7 @@ module.exports = class RequestUtils {
 
   async _handleSuccess (data, funName, access) {
     return new Promise((resolve) => {
-      if (data.message.startsWith('You are being') && data.code === 0) {
+      if ((data.message || '').startsWith('You are being') && data.code === 0) {
         let fun
         // I know this is HELLA dumb but I don't want to use switch/case statments so idk
         if (funName === 'tokens') fun = this._getTokens
@@ -143,6 +143,6 @@ module.exports = class RequestUtils {
   }
 
   _showError (error) {
-    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}`)
+    console.log('[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n'+ error.response ? `[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}` : `[Starship] Error message: ${error.stack}`)
   }
 }
