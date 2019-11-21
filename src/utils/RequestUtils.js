@@ -46,7 +46,8 @@ module.exports = class RequestUtils {
       data = newData.data
     }
 
-    if (this.starship.scopes.includes(a => a === 'guilds')) {
+    if (this.starship._scopes.includes('guilds')) {
+      this.starship.debug(`Trying to fetch guilds for ${data.username}...`)
       const guildData = await this._getGuilds(access)
       if (guildData.error) data.guilds = []
       else data.guilds = guildData.data
@@ -65,12 +66,16 @@ module.exports = class RequestUtils {
   }
 
   _getGuilds (access) {
+    this.starship.debug('Trying to fetch the user\'s guilds...')
     return superagent
       .get('https://discordapp.com/api/users/@me/guilds')
+      .ok(res => res.status === 429 || res.status === 200)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
-        return this._handleSuccess(JSON.parse(res.body), this._getGuilds, access)
+        this.starship.debug(`Successfully fetched user's guilds. (${res.body})`)
+        return this._handleSuccess(res.body, 'guilds', access)
       }).catch((error) => {
+        this.starship.debug(`Failed to fetch user's guilds. (${error.response.body})`)
         return this._handleError(error)
       })
   }
@@ -78,10 +83,11 @@ module.exports = class RequestUtils {
   _getUser (access) {
     return superagent
       .get('https://discordapp.com/api/users/@me')
-      .ok(res => res.status <= 403)
+      .ok(res => res.status <= 403 || res.status === 429 || res.status === 200)
       .set('Authorization', `Bearer ${access}`)
       .then((res) => {
-        return this._handleSuccess(JSON.parse(res.body), this._getUser, access)
+        this.starship.debug(res.body)
+        return this._handleSuccess(res.body, 'user', access)
       }).catch((error) => {
         return this._handleError(error)
       })
@@ -90,18 +96,28 @@ module.exports = class RequestUtils {
   _getTokens (code) {
     return superagent
       .post(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${this.starship._redirectURL}`)
-      .set('Authorization', `Basic ${this.creds}`)
+      .ok(res => res.status === 429 || res.status === 200)
+      .set('Authorization', `Basic ${this._creds}`)
       .then((res) => {
-        return this._handleSuccess(JSON.parse(res.body), this._getTokens, code)
+        this.starship.debug(res.body)
+        return this._handleSuccess(res.body, 'tokens', code)
       }).catch((error) => {
         return this._handleError(error)
       })
   }
 
-  async _handleSuccess (data, fun, access) {
+  async _handleSuccess (data, funName, access) {
     return new Promise((resolve) => {
-      if (data.message === 'You are being rate limited.') {
-        setTimeout(async () => {
+      if ((data.message || '').startsWith('You are being') && data.code === 0) {
+        let fun
+        // I know this is HELLA dumb but I don't want to use switch/case statments so idk
+        if (funName === 'tokens') fun = this._getTokens
+        else if (funName === 'user') fun = this._getUser
+        else if (funName === 'guilds') fun = this._getGuilds
+
+        this.starship.debug(`Yay, rate limit. Retrying the request after ${data.retry_after}ms.`)
+        setTimeout(() => {
+          this.starship.debug('Retrying the request...')
           resolve(fun(access))
         }, data.retry_after)
       } else {
@@ -127,6 +143,6 @@ module.exports = class RequestUtils {
   }
 
   _showError (error) {
-    console.log(`[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n[Starship] Error message: ${error.message}`)
+    this.starship.debug('[Starship] An error was caught while trying to create a request.\n[Starship] This is probably a Discord issue.\n' + error.response ? `[Starship] Error data: ${error.response.status} - ${error.response.text}\n[Starship] Error message: ${error.stack}` : `[Starship] Error message: ${error.stack}`)
   }
 }

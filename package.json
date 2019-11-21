@@ -1,6 +1,6 @@
 {
   "name": "starship-discord",
-  "version": "1.1.20",
+  "version": "1.1.21",
   "description": "Discord OAuth made easy with JWT.",
   "main": "index.js",
   "author": "BlueSlimee",
